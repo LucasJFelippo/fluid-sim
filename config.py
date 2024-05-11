@@ -12,4 +12,4 @@ PARTICLE = {"radius": 10,
         "color": "blue"
         }
 
-GRAPHICS_ENGINE = "v1"
+GRAPHIC_ENGINE = "proton"
