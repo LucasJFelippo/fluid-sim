@@ -1,7 +1,5 @@
-from core.core import *
+from src.core import main
 
 
-def main() -> None:
-    pass
-
-main()
+if __name__ == "__main__":
+    main()
