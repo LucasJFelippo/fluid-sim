@@ -8,5 +8,5 @@ def start() -> None:
 
     inp = 1
     while inp != "e":
-        sim.particles[4].pos.x += 100
+        sim.particles[0].pos.x += 1
         inp = input()

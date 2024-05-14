@@ -1,9 +1,10 @@
-from random import randint
 from threading import Thread
 import queue
+from random import randint
+import math
 
 from src.simulation.particle import Particle
-from config import NUMBER_OF_PARTICLES, SCREEN_SIZE, GRAPHIC_ENGINE
+from config import NUMBER_OF_PARTICLES, PARTICLE, SCREEN_SIZE, GRAPHIC_ENGINE
 from src.in_out.options import GRAPHIC_ENGINE_CATALOG
 
 from src.in_out.core import init_in_out
@@ -14,16 +15,24 @@ class Simulator:
         # this array is will be passed to both physics (read and write) and graphic (read only) thread
         self.particles = []
 
-        # temporary: populate the particles with random particles
-        # TODO: make the logic of defaut particle spawn
+        # populate the particles in a grid starting position
+        particles_per_row = math.floor(NUMBER_OF_PARTICLES**0.5)
+        particles_per_col = math.ceil(NUMBER_OF_PARTICLES / particles_per_row)
+        spacing = PARTICLE['radius'] * 2 + PARTICLE['spacing']
+        
+        starting_x = SCREEN_SIZE['x'] / 2 - particles_per_row / 2 * spacing
+        starting_y = SCREEN_SIZE['y'] / 2 - particles_per_col / 2 * spacing
+
         for i in range(NUMBER_OF_PARTICLES):
-            self.particles.append(Particle(randint(1, SCREEN_SIZE['x']), randint(1, SCREEN_SIZE['y'])))
+            x = starting_x + i % particles_per_row * spacing
+            y = starting_y + i // particles_per_row * spacing
+            self.particles.append(Particle(x, y))
 
 
         # create the queue that will be used as buffers to transmit information between the in/out thread and the main thread
         # input buffer: will be feed the inputs of the user inside graphic thread, where pygame stuff is, and will be read by the main thread
         self.input_buffer = queue.Queue()
-        # signal buffer: will be feed by the main thread, to transmit commands like close the window to the graphic thread controler
+        # signal buffer: will be feed by the main thread, to transmit commands like close the window to the graphic thread controller, and tranmit information from the simulation menu and mouse from withing graphics engine
         self.graphic_engine_signal_buffer = queue.Queue()
         
 

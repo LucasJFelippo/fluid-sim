@@ -1,0 +1,6 @@
+# Test py files
+test.py
+test2.py
+
+# Byte code begone
+**/__pycache__/

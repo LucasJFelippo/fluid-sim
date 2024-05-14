@@ -1,4 +1,4 @@
-from src.in_out.out.proton import Proton
+from src.in_out.output.proton import Proton
 
 GRAPHIC_ENGINE_CATALOG = {"proton": Proton
         }
