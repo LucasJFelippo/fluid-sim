@@ -8,6 +8,8 @@ from pygame_widgets.slider import Slider
 from src.objects.states import EngineStateTable
 from config import NUMBER_OF_PARTICLES, PARTICLE, SCREEN_SIZE
 
+from src.in_out.events import Graphic_events, BaseEvent
+
 # the engines uses a state design pattern to control the behaviour of the engines in each state of the simulation
 class ProtonState(ABC):
     @property
@@ -27,8 +29,33 @@ class OffState(ProtonState):
 
 class MenuState(ProtonState):
     def step(self) -> None:
+        menu = self.proton.menu
+
+        send_event = False
+        number_of_particles_slider_value = menu.number_of_particles.getValue()
+        if menu.number_of_particles_value != number_of_particles_slider_value:
+            menu.number_of_particles_value = number_of_particles_slider_value
+            send_event = True
+
+        particle_radius_slider_value = menu.particle_radius.getValue()
+        if menu.particle_radius_value != particle_radius_slider_value:
+            menu.particle_radius_value = particle_radius_slider_value
+            send_event = True
+
+        particle_spacing_slider_value = menu.particle_spacing.getValue()
+        if menu.particle_spacing_value != particle_spacing_slider_value:
+            menu.particle_spacing_value = particle_spacing_slider_value
+            send_event = True
+
+        if send_event:
+            event = BaseEvent()
+            event.type = Graphic_events.MENUVALUECHANGE
+            event.dict = {"number of particles": number_of_particles_slider_value,
+                          "particle radius": particle_radius_slider_value,
+                          "particle spacing": particle_spacing_slider_value}
+            self.proton.send_menu_event(event)
+
         self.proton.draw_menu()
-        
         self.proton.draw_particles()
 
 class RunningState(ProtonState):
@@ -70,12 +97,15 @@ class Menu:
         self.text_colour = (170, 170, 170)
 
         # create each slider, and it's respective title text surfaces
-        self.number_of_particles = Slider(self.screen, self.x, self.y + 20, 100, 10, min=1, max=300, step=1, colour = self.slider_colour, handleColour = self.slider_handleColour, initial = NUMBER_OF_PARTICLES)
+        self.number_of_particles_value = NUMBER_OF_PARTICLES
+        self.number_of_particles = Slider(self.screen, self.x, self.y + 20, 100, 10, min=1, max=3000, step=1, colour = self.slider_colour, handleColour = self.slider_handleColour, initial = NUMBER_OF_PARTICLES)
         self.number_of_particles_text_surface = self.main_font.render("Number of Particles", True, self.text_colour)
 
+        self.particle_radius_value = PARTICLE['radius']
         self.particle_radius = Slider(self.screen, self.x, self.y + 60, 100, 10, min=0.1, max=10, step=0.1, colour = self.slider_colour, handleColour = self.slider_handleColour, initial = PARTICLE['radius'])
         self.particle_radius_text_surface = self.main_font.render("Particles Radius", True, self.text_colour)
 
+        self.particle_spacing_value = PARTICLE['spacing']
         self.particle_spacing = Slider(self.screen, self.x, self.y + 100, 100, 10, min=0.1, max=5, step=0.1, colour = self.slider_colour, handleColour = self.slider_handleColour, initial = PARTICLE['spacing'])
         self.particle_spacing_text_surface = self.main_font.render("Particles Spacing", True, self.text_colour)
 
@@ -102,11 +132,12 @@ class Proton:
 
     _state = ProtonStateTable.OFF.value
 
-    def __init__(self, pg, screen, particles, signal_buffer) -> None:
+    def __init__(self, pg, screen, particles, command_buffer, menu_buffer) -> None:
         # the engine receave the pygame objects, signal buffer and particles from the simulation controller
         self.pg = pg
         self.screen = screen
-        self.signal_buffer = signal_buffer
+        self.command_buffer = command_buffer
+        self.menu_buffer = menu_buffer
 
         self.particles = particles
 
@@ -145,6 +176,10 @@ class Proton:
 
     def step(self) -> None:
         self._state.step()
+
+
+    def send_menu_event(self, event) -> None:
+        self.menu_buffer.put(event)
 
 
     def draw_menu(self) -> None:

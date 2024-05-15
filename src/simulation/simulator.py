@@ -15,30 +15,43 @@ class Simulator:
         # this array is will be passed to both physics (read and write) and graphic (read only) thread
         self.particles = []
 
-        # populate the particles in a grid starting position
-        particles_per_row = math.floor(NUMBER_OF_PARTICLES**0.5)
-        particles_per_col = math.ceil(NUMBER_OF_PARTICLES / particles_per_row)
-        spacing = PARTICLE['radius'] * 2 + PARTICLE['spacing']
-        
-        starting_x = SCREEN_SIZE['x'] / 2 - particles_per_row / 2 * spacing
-        starting_y = SCREEN_SIZE['y'] / 2 - particles_per_col / 2 * spacing
+        # get the base values of mutable information of particles
+        self.number_of_particles = NUMBER_OF_PARTICLES
+        self.particles_radius = PARTICLE['radius']
+        self.particles_spacing = PARTICLE['spacing']
 
-        for i in range(NUMBER_OF_PARTICLES):
-            x = starting_x + i % particles_per_row * spacing
-            y = starting_y + i // particles_per_row * spacing
-            self.particles.append(Particle(x, y))
+        # populate the particles in a grid starting position
+        self.arrange_particles(self.number_of_particles, self.particles_radius, self.particles_spacing)
 
 
         # create the queue that will be used as buffers to transmit information between the in/out thread and the main thread
         # input buffer: will be feed the inputs of the user inside graphic thread, where pygame stuff is, and will be read by the main thread
         self.input_buffer = queue.Queue()
         # signal buffer: will be feed by the main thread, to transmit commands like close the window to the graphic thread controller, and tranmit information from the simulation menu and mouse from withing graphics engine
-        self.graphic_engine_signal_buffer = queue.Queue()
-        
+        self.graphic_command_buffer = queue.Queue()
+        self.menu_buffer = queue.Queue()
+
 
         # register the name of the graphic engine being used, according to config
         self.graphic_engine_model = GRAPHIC_ENGINE
 
         # creating and starting the thread that handle the output (graphic engine) and input (mouse and keyboard)
-        self.in_out_thread = Thread(target=init_in_out, args=[self.particles, self.input_buffer, self.graphic_engine_signal_buffer])
+        self.in_out_thread = Thread(target=init_in_out, args=[self.particles, self.input_buffer, self.graphic_command_buffer, self.menu_buffer])
         self.in_out_thread.start()
+
+
+    def arrange_particles(self, number_of_particles, radius, spacing) -> None:
+        # clear the current arrange of particles
+        self.particles.clear()
+
+        particles_per_row = math.floor(number_of_particles**0.5)
+        particles_per_col = math.ceil(number_of_particles / particles_per_row)
+        spacing = radius * 2 + spacing
+
+        starting_x = SCREEN_SIZE['x'] / 2 - particles_per_row / 2 * spacing
+        starting_y = SCREEN_SIZE['y'] / 2 - particles_per_col / 2 * spacing
+
+        for i in range(number_of_particles):
+            x = starting_x + i % particles_per_row * spacing
+            y = starting_y + i // particles_per_row * spacing
+            self.particles.append(Particle(x, y, radius))

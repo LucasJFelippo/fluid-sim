@@ -9,13 +9,13 @@ from src.in_out.options import GRAPHIC_ENGINE_CATALOG
 from src.in_out.output.proton import Proton
 
 
-def init_in_out(particles, input_buffer, graphic_engine_signal_buffer) -> None:
+def init_in_out(particles, input_buffer, graphic_command_buffer, menu_buffer) -> None:
     # setup pygame for graphic and mouse/keyboard input
     pg.init()
     pg.font.init()
 
     # init out: graphic engine
-    graphic_engine = init_graphic_engine(particles, graphic_engine_signal_buffer)
+    graphic_engine = init_graphic_engine(particles, graphic_command_buffer, menu_buffer)
 
     # main loop
     graphic_engine.start()
@@ -36,7 +36,7 @@ def init_in_out(particles, input_buffer, graphic_engine_signal_buffer) -> None:
 
 
 
-def init_graphic_engine(particles, signal_buffer) -> Proton:
+def init_graphic_engine(particles, command_buffer, menu_buffer) -> Proton:
     # set the window screen
     screen = pg.display.set_mode((SCREEN_SIZE["x"], SCREEN_SIZE["y"]))
 
@@ -45,4 +45,4 @@ def init_graphic_engine(particles, signal_buffer) -> Proton:
     # get engine object from dictionary on options
     engine_object = GRAPHIC_ENGINE_CATALOG[graphic_engine_name]
     # return the instance of the engine
-    return engine_object(pg, screen, particles, signal_buffer)
+    return engine_object(pg, screen, particles, command_buffer, menu_buffer)
