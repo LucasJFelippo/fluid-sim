@@ -8,7 +8,8 @@ from pygame_widgets.button import Button
 from src.objects.states import EngineStateTable
 from config import NUMBER_OF_PARTICLES, PARTICLE, SCREEN_SIZE
 
-from src.in_out.events import Graphic_events, BaseEvent
+from src.event import BaseEvent
+from src.in_out.events import Graphic_events
 
 # the engines uses a state design pattern to control the behaviour of the engines in each state of the simulation
 class ProtonState(ABC):

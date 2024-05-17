@@ -15,3 +15,7 @@ PARTICLE = {"radius": 5,
 
 GRAPHIC_ENGINE = "proton"
 PHYSIC_ENGINE = "atom"
+
+# physic params
+VELOCITYWEIGHT = 0.5
+GRAVITY = 9.8
