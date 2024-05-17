@@ -1,7 +1,9 @@
 from enum import Enum, auto
 
 class Graphic_events(Enum):
-    MENUVALUECHANGE = 0
+    WINDOWCLOSED = 0
+    MENUVALUECHANGE = 2
+    SIMSTART = 4
 
 class BaseEvent:
     @property

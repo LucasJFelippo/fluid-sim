@@ -14,3 +14,4 @@ PARTICLE = {"radius": 5,
         }
 
 GRAPHIC_ENGINE = "proton"
+PHYSIC_ENGINE = "atom"

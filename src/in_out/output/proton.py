@@ -1,9 +1,9 @@
-import time, sys
-from enum import Enum, auto
+from enum import Enum
 from abc import ABC, abstractmethod
 
 from pygame import init
 from pygame_widgets.slider import Slider
+from pygame_widgets.button import Button
 
 from src.objects.states import EngineStateTable
 from config import NUMBER_OF_PARTICLES, PARTICLE, SCREEN_SIZE
@@ -29,8 +29,23 @@ class OffState(ProtonState):
 
 class MenuState(ProtonState):
     def step(self) -> None:
+        self.proton.draw_particles()
+
         menu = self.proton.menu
 
+        # handle the event of the start button
+        if menu.start_sim:
+            menu.off()
+            self.proton.state = ProtonStateTable.RUNNING.value
+
+            event = BaseEvent()
+            event.type = Graphic_events.SIMSTART
+            self.proton.send_menu_event(event)
+
+            return
+
+        # verify if there was a change on the value of each slider
+        # TODO: make it recursively
         send_event = False
         number_of_particles_slider_value = menu.number_of_particles.getValue()
         if menu.number_of_particles_value != number_of_particles_slider_value:
@@ -47,6 +62,7 @@ class MenuState(ProtonState):
             menu.particle_spacing_value = particle_spacing_slider_value
             send_event = True
 
+        # if there was a change create an event and ask engine to send it to the simulator controller
         if send_event:
             event = BaseEvent()
             event.type = Graphic_events.MENUVALUECHANGE
@@ -56,11 +72,10 @@ class MenuState(ProtonState):
             self.proton.send_menu_event(event)
 
         self.proton.draw_menu()
-        self.proton.draw_particles()
 
 class RunningState(ProtonState):
     def step(self) -> None:
-        pass
+        self.proton.draw_particles()
 
 class PausedState(ProtonState):
     def step(self) -> None:
@@ -85,6 +100,9 @@ class Menu:
         self.screen = screen
         self.pg = pg
 
+        # true if the start sim button is pressed
+        self.start_sim = False
+
         # sets the x and y value of the menu, all elements inside it follow this two values
         self.x = SCREEN_SIZE['x'] - 150
         self.y = 30
@@ -98,7 +116,19 @@ class Menu:
 
         # create each slider, and it's respective title text surfaces
         self.number_of_particles_value = NUMBER_OF_PARTICLES
-        self.number_of_particles = Slider(self.screen, self.x, self.y + 20, 100, 10, min=1, max=3000, step=1, colour = self.slider_colour, handleColour = self.slider_handleColour, initial = NUMBER_OF_PARTICLES)
+        self.number_of_particles = Slider(
+            win=self.screen,
+            x=self.x,
+            y=self.y + 20,
+            width=100,
+            height=10,
+            min=1,
+            max=3000,
+            step=1,
+            colour = self.slider_colour,
+            handleColour = self.slider_handleColour,
+            initial = NUMBER_OF_PARTICLES
+        )
         self.number_of_particles_text_surface = self.main_font.render("Number of Particles", True, self.text_colour)
 
         self.particle_radius_value = PARTICLE['radius']
@@ -109,9 +139,12 @@ class Menu:
         self.particle_spacing = Slider(self.screen, self.x, self.y + 100, 100, 10, min=0.1, max=5, step=0.1, colour = self.slider_colour, handleColour = self.slider_handleColour, initial = PARTICLE['spacing'])
         self.particle_spacing_text_surface = self.main_font.render("Particles Spacing", True, self.text_colour)
 
+        self.start_button = Button(self.screen, self.x, self.y + 130, 105, 20, text = 'Start', font = self.main_font, textColour = self.text_colour, inactiveColour = self.slider_colour, hoverColour = self.slider_handleColour, pressedColour = (0, 200, 20), radius = 5, onClick = self.toggle_start
+        )
+
     def on(self) -> None:
         # draw the background, set all sliders to show and blit all text surfaces to the frame
-        background = self.pg.Rect(self.x - 15, self.y - 10, 140, 150)
+        background = self.pg.Rect(self.x - 15, self.y - 10, 140, 170)
         self.pg.draw.rect(self.screen, (55, 55, 55), background, border_radius = 5)
         # pygame widgets objects didn't have to be draw, they draw itselfs automaticly, show() and hide() toggle it's visibility
         self.number_of_particles.show()
@@ -126,6 +159,10 @@ class Menu:
         self.number_of_particles.hide()
         self.particle_radius.hide()
         self.particle_spacing.hide()
+        self.start_button.hide()
+
+    def toggle_start(self) -> None:
+        self.start_sim = not self.start_sim
 
 
 class Proton:
@@ -143,7 +180,7 @@ class Proton:
 
         self.on = True
 
-        # set proton instance as the proton of each state object created on the state table
+        # set proton instance as the state.proton of each state object created on the state table
         for state in ProtonStateTable:
             state.value.proton = self
 
@@ -151,7 +188,7 @@ class Proton:
         self.menu = Menu(self.screen, self.pg)
 
     @property
-    def state(self) -> ProtonStateTable:
+    def state(self) -> ProtonState:
         return self._state
     @state.setter
     def state(self, new_state) -> None:
@@ -167,7 +204,10 @@ class Proton:
         self.on = False
         self.pg.display.quit()
         self.pg.quit()
-        sys.exit()
+
+        event = BaseEvent()
+        event.type = Graphic_events.WINDOWCLOSED
+        self.send_menu_event(event)
 
     @property
     def events(self) -> list:
@@ -175,10 +215,12 @@ class Proton:
 
 
     def step(self) -> None:
+        # make the engine tick
         self._state.step()
 
 
     def send_menu_event(self, event) -> None:
+        # called by Menu state
         self.menu_buffer.put(event)
 
 

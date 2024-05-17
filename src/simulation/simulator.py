@@ -8,6 +8,7 @@ from config import NUMBER_OF_PARTICLES, PARTICLE, SCREEN_SIZE, GRAPHIC_ENGINE
 from src.in_out.options import GRAPHIC_ENGINE_CATALOG
 
 from src.in_out.core import init_in_out
+from src.physic.core import init_physic
 
 class Simulator:
     def __init__(self) -> None:
@@ -27,7 +28,7 @@ class Simulator:
         # create the queue that will be used as buffers to transmit information between the in/out thread and the main thread
         # input buffer: will be feed the inputs of the user inside graphic thread, where pygame stuff is, and will be read by the main thread
         self.input_buffer = queue.Queue()
-        # signal buffer: will be feed by the main thread, to transmit commands like close the window to the graphic thread controller, and tranmit information from the simulation menu and mouse from withing graphics engine
+        # command buffer: will be feed by the main thread, to transmit commands like close the window to the graphic thread controller, and tranmit information from the simulation menu and mouse from withing graphics engine
         self.graphic_command_buffer = queue.Queue()
         self.menu_buffer = queue.Queue()
 
@@ -38,6 +39,9 @@ class Simulator:
         # creating and starting the thread that handle the output (graphic engine) and input (mouse and keyboard)
         self.in_out_thread = Thread(target=init_in_out, args=[self.particles, self.input_buffer, self.graphic_command_buffer, self.menu_buffer])
         self.in_out_thread.start()
+
+        # creating and starting the thread that calculate the particles movement (physic engine)
+        self.physic_thread = Thread(target=init_physic, args=[self.particles])
 
 
     def arrange_particles(self, number_of_particles, radius, spacing) -> None:

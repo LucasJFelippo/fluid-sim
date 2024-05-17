@@ -1,12 +1,11 @@
 import pygame as pg
-import time
+import time, sys
 
 import pygame_widgets as pg_widgets
 from pygame_widgets.slider import Slider
 
 from config import FRAME_RATE, SCREEN_SIZE, BACKGROUND_COLOR, GRAPHIC_ENGINE
 from src.in_out.options import GRAPHIC_ENGINE_CATALOG
-from src.in_out.output.proton import Proton
 
 
 def init_in_out(particles, input_buffer, graphic_command_buffer, menu_buffer) -> None:
@@ -23,10 +22,11 @@ def init_in_out(particles, input_buffer, graphic_command_buffer, menu_buffer) ->
         for event in graphic_engine.events:
             if event.type == graphic_engine.pg.QUIT:
                 graphic_engine.terminate()
+                sys.exit()
 
         graphic_engine.screen.fill(BACKGROUND_COLOR)
 
-        # call the step on the engine, this indirect call the step of the state of the engine
+        # call the step on the engine, this indirect call the step of the state of the engine and make the engine tick
         graphic_engine.step()
 
         pg_widgets.update(graphic_engine.events)
@@ -35,8 +35,7 @@ def init_in_out(particles, input_buffer, graphic_command_buffer, menu_buffer) ->
         time.sleep(1 / FRAME_RATE)
 
 
-
-def init_graphic_engine(particles, command_buffer, menu_buffer) -> Proton:
+def init_graphic_engine(particles, command_buffer, menu_buffer):
     # set the window screen
     screen = pg.display.set_mode((SCREEN_SIZE["x"], SCREEN_SIZE["y"]))
 
