@@ -13,6 +13,9 @@ def init_in_out(particles, input_buffer, graphic_command_buffer, menu_buffer) ->
     pg.init()
     pg.font.init()
 
+    # set the clock that will be used to control the frame rate
+    clock = pg.time.Clock()
+
     # init out: graphic engine
     graphic_engine = init_graphic_engine(particles, graphic_command_buffer, menu_buffer)
 
@@ -32,7 +35,7 @@ def init_in_out(particles, input_buffer, graphic_command_buffer, menu_buffer) ->
         pg_widgets.update(graphic_engine.events)
         graphic_engine.pg.display.flip()
 
-        time.sleep(1 / FRAME_RATE)
+        clock.tick(FRAME_RATE)
 
 
 def init_graphic_engine(particles, command_buffer, menu_buffer):

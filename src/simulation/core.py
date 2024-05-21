@@ -24,5 +24,4 @@ def start() -> None:
                 event.type = Physic_events.SIMSTART
                 sim.send_event(sim.physic_command_buffer, event)
 
-
         time.sleep(1 / 60)

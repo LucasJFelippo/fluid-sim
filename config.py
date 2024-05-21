@@ -1,21 +1,22 @@
-SCREEN_SIZE = {"x": 1280,
-               "y": 720
+SCREEN_SIZE = {"x": 1280,   # ~35.2 cm
+               "y": 720     # ~20 cm
                }
 
 BACKGROUND_COLOR = "black"
 
-FRAME_RATE = 60
+FRAME_RATE = 244
 
-NUMBER_OF_PARTICLES = 100
+NUMBER_OF_PARTICLES = 20
 
 PARTICLE = {"radius": 5,
         "color": "cyan3",
         "spacing": 2
         }
 
+COLLISIONDAMPING = 0.8 # between 0 and 1
+
 GRAPHIC_ENGINE = "proton"
 PHYSIC_ENGINE = "atom"
 
 # physic params
-VELOCITYWEIGHT = 0.5
-GRAVITY = 9.8
+GRAVITY = 9.8 * 25

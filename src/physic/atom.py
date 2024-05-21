@@ -1,9 +1,10 @@
-import time
+import time, copy
 
 from enum import Enum
 from abc import ABC, abstractmethod
 
-from config import GRAVITY, VELOCITYWEIGHT
+from pygame import Vector2
+from config import GRAVITY, SCREEN_SIZE, COLLISIONDAMPING
 
 # the engines uses a state design pattern to control the behaviour of the engines in each state of the simulation
 class AtomState(ABC):
@@ -24,12 +25,11 @@ class OffState(AtomState):
 
 class RunningState(AtomState):
     def step(self) -> None:
+        # calculate the delta time
         current_step_time = time.time()
-        step_time_difference = current_step_time - self.atom.last_step_time
-        if step_time_difference == 0:
-            step_time_difference = 0.001
-        step_per_second = 1 / step_time_difference
-        self.atom.gravity(step_per_second)
+        delta_time = current_step_time - self.atom.last_step_time
+
+        self.atom.predict(delta_time)
         self.atom.last_step_time = current_step_time
 
 class PausedState(AtomState):
@@ -60,8 +60,7 @@ class Atom:
 
         self.on = True
 
-        self.velocity_weight = VELOCITYWEIGHT
-
+        self.test_time = 0
         self.last_step_time = 0
 
         # set atom instance as the state.atom of each state object created on the state table
@@ -91,8 +90,32 @@ class Atom:
         self._state.step()
 
 
-    # TODO: make the function to calculate the total velocity vector
-    def gravity(self, time_difference) -> None:
-        # TODO: make gravity change particle velocity
+    def predict(self, delta_time) -> None:
+        last_state = copy.deepcopy(self.particles)
         for particle in self.particles:
-            particle.pos.y += GRAVITY / time_difference * self.velocity_weight
+            velocity = particle.vel
+
+            velocity += self.gravity(delta_time)
+
+            particle.move(delta_time)
+            self.walls_collision(particle)
+
+
+    def walls_collision(self, particle):
+        # check if the particle is out of the screen
+        if particle.pos.x - particle.radius < 0:
+            particle.pos.x = particle.radius
+            particle.vel.x *= -1 * COLLISIONDAMPING
+        if particle.pos.x + particle.radius > SCREEN_SIZE['x']:
+            particle.pos.x = SCREEN_SIZE['x'] - particle.radius
+            particle.vel.x *= -1 * COLLISIONDAMPING
+        if particle.pos.y - particle.radius < 0:
+            particle.pos.y = particle.radius
+            particle.vel.y *= -1 * COLLISIONDAMPING
+        if particle.pos.y + particle.radius > SCREEN_SIZE['y']:
+            particle.pos.y = SCREEN_SIZE['y'] - particle.radius
+            particle.vel.y *= -1 * COLLISIONDAMPING
+
+    # TODO: make the function to calculate the total velocity vector
+    def gravity(self, delta_time) -> Vector2:
+        return Vector2(0, GRAVITY * delta_time)
