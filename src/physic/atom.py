@@ -1,10 +1,10 @@
-import time, copy
+import time, copy, math
 
 from enum import Enum
 from abc import ABC, abstractmethod
 
 from pygame import Vector2
-from config import GRAVITY, SCREEN_SIZE, COLLISIONDAMPING
+from config import GRAVITY, SCREEN_SIZE, COLLISIONDAMPING, SMOOTHINGRADIUS
 
 # the engines uses a state design pattern to control the behaviour of the engines in each state of the simulation
 class AtomState(ABC):
@@ -95,7 +95,7 @@ class Atom:
         for particle in self.particles:
             velocity = particle.vel
 
-            velocity += self.gravity(delta_time)
+            # velocity += self.gravity(delta_time)
 
             particle.move(delta_time)
             self.walls_collision(particle)
@@ -116,6 +116,20 @@ class Atom:
             particle.pos.y = SCREEN_SIZE['y'] - particle.radius
             particle.vel.y *= -1 * COLLISIONDAMPING
 
-    # TODO: make the function to calculate the total velocity vector
     def gravity(self, delta_time) -> Vector2:
         return Vector2(0, GRAVITY * delta_time)
+
+
+    def smoothing_kernel(self, radius, distance) -> int:
+        if distance >= radius: return
+        
+        return (radius - distance)**2 / ((math.pi * radius**4) / 6)
+
+    def density(self, point, particles) -> int:
+        density = 0
+        mass = 1
+        for particle in particles:
+            distance  = (particle.pos - point).magnitude()
+            influence = self.smoothing_kernel(SMOOTHINGRADIUS, distance)
+            density += mass * influence
+        return density

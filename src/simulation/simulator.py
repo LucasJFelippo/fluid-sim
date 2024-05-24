@@ -1,6 +1,6 @@
 from threading import Thread
 import queue
-from random import randint
+import random
 import math
 
 from src.simulation.particle import Particle
@@ -52,17 +52,22 @@ class Simulator:
         # clear the current arrange of particles
         self.particles.clear()
 
-        particles_per_row = math.floor(number_of_particles**0.5)
-        particles_per_col = math.ceil(number_of_particles / particles_per_row)
-        spacing = radius * 2 + spacing
+        # particles_per_row = math.floor(number_of_particles**0.5)
+        # particles_per_col = math.ceil(number_of_particles / particles_per_row)
+        # spacing = radius * 2 + spacing
 
-        starting_x = SCREEN_SIZE['x'] / 2 - particles_per_row / 2 * spacing
-        starting_y = SCREEN_SIZE['y'] / 2 - particles_per_col / 2 * spacing
+        # starting_x = SCREEN_SIZE['x'] / 2 - particles_per_row / 2 * spacing
+        # starting_y = SCREEN_SIZE['y'] / 2 - particles_per_col / 2 * spacing
+
+        # for i in range(number_of_particles):
+        #     x = starting_x + i % particles_per_row * spacing
+        #     y = starting_y + i // particles_per_row * spacing
+        #     self.particles.append(Particle(x, y, radius))
 
         for i in range(number_of_particles):
-            x = starting_x + i % particles_per_row * spacing
-            y = starting_y + i // particles_per_row * spacing
-            self.particles.append(Particle(x, y, radius))
+            x = random.randint(0, SCREEN_SIZE['x'])
+            y = random.randint(0, SCREEN_SIZE['y'])
+            self.particles.append(Particle(x,y, radius))
 
 
     def send_event(self, buffer, event):

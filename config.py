@@ -20,3 +20,5 @@ PHYSIC_ENGINE = "atom"
 
 # physic params
 GRAVITY = 9.8 * 25
+
+SMOOTHINGRADIUS = 10
